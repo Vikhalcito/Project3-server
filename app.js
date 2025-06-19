@@ -18,6 +18,11 @@ require("./config")(app);
 const indexRoutes = require("./routes/index.routes");
 app.use("/api", indexRoutes);
 
+// Rutas para los exercises.
+
+const exerciseRoutes = require("./routes/exercise.routes");
+app.use("/api", exerciseRoutes)
+
 const authRoutes = require("./routes/auth.routes");
 app.use("/auth", authRoutes);
 
