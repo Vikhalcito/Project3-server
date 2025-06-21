@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {Schema, model} = mongoose;
 
 const routineSchema = new mongoose.Schema({
   name: { type: String, required: true },
