@@ -21,6 +21,7 @@ router.post("/routines", (req, res, next) => {
 router.get("/routines", (req, res, next) => {
 
     Routine.find()
+    .populate("exercises")
     .then((allRoutines)=> res.status(201).json(allRoutines))
     .catch((err) => res.status(400).json({message: "There are no Routines to show"}))
 })
@@ -74,10 +75,5 @@ router.delete("/routines/:routineId", (req, res, next) => {
     .catch((err) => res.json(err))
 
 })
-
-
-
-
-
 
 module.exports = router;
