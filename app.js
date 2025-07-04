@@ -7,6 +7,9 @@ require("./db");
 
 // Handles http requests (express is node js framework)
 // https://www.npmjs.com/package/express
+const { isAuthenticated } = require("./middleware/jwt.middleware");
+
+
 const express = require("express");
 
 const app = express();
@@ -19,17 +22,24 @@ const indexRoutes = require("./routes/index.routes");
 app.use("/api", indexRoutes);
 
 // Rutas para los exercises.
-
 const exerciseRoutes = require("./routes/exercise.routes");
-app.use("/api", exerciseRoutes)
+app.use("/api",isAuthenticated, exerciseRoutes)
 
 // Rutas para las Routines
-
 const routineRoutes = require("./routes/routine.routes");
-app.use("/api", routineRoutes)
+app.use("/api",isAuthenticated, routineRoutes)
 
+// Rutas para el Profile
+const profileRouter  = require("./routes/profile.routes");
+app.use("/api",isAuthenticated, profileRouter)
+
+//
 const authRoutes = require("./routes/auth.routes");
 app.use("/auth", authRoutes);
+
+// Middleware - AuthRouter
+const authRouter = require("./routes/auth.routes"); 
+app.use("/auth", authRouter);    
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);

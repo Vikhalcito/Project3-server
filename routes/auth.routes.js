@@ -1,5 +1,4 @@
 const express = require("express");
-const router = express.Router();
 
 // ℹ️ Handles password encryption
 const bcrypt = require("bcrypt");
@@ -14,6 +13,7 @@ const User = require("../models/User.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware.js");
 
 // How many rounds should bcrypt run the salt (default - 10 rounds)
+const router = express.Router();
 const saltRounds = 10;
 
 // POST /auth/signup  - Creates a new user in the database
@@ -21,7 +21,7 @@ router.post("/signup", (req, res, next) => {
   const { email, password, name } = req.body;
 
   // Check if email or password or name are provided as empty strings
-  if (email === "" || password === "" || name === "") {
+  if (!email || !password || !name) {
     res.status(400).json({ message: "Provide email, password and name" });
     return;
   }
@@ -77,9 +77,9 @@ router.post("/signup", (req, res, next) => {
 // POST  /auth/login - Verifies email and password and returns a JWT
 router.post("/login", (req, res, next) => {
   const { email, password } = req.body;
-
+  console.log(email, password)
   // Check if email or password are provided as empty string
-  if (email === "" || password === "") {
+  if (!email || !password) {
     res.status(400).json({ message: "Provide email and password." });
     return;
   }
@@ -94,6 +94,11 @@ router.post("/login", (req, res, next) => {
       }
 
       // Compare the provided password with the one saved in the database
+     console.log("Login attempt for:", email);
+    console.log("Entered password:", password);
+    console.log("Stored hash:", foundUser.password)
+
+
       const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
 
       if (passwordCorrect) {
@@ -111,6 +116,7 @@ router.post("/login", (req, res, next) => {
 
         // Send the token as the response
         res.status(200).json({ authToken: authToken });
+        res.status(200).json("All good");
       } else {
         res.status(401).json({ message: "Unable to authenticate the user" });
       }

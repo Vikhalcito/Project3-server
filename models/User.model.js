@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {Schema, model} = mongoose;
 
 const userSchema = new mongoose.Schema(
    {
@@ -25,7 +26,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Passoword is required'],
       minlength: 8,
-      select: false, // Evita que se devuelva por defecto en los querys.
+      
     },
 
     age: {
@@ -47,7 +48,7 @@ const userSchema = new mongoose.Schema(
       min: 0,
     },
 
-    hight: {
+    height: {
       type: Number, // cm
       min: 0,
     },
@@ -57,11 +58,22 @@ const userSchema = new mongoose.Schema(
       enum: ['male', 'female', 'other'],
     },
 
+    description: {
+      type: String,
+      
+    },
+
     userType: {
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
     },
+    routines: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Routines',
+    }
+    ]
   },
   {
     timestamps: true, // Fecha de createdAt - updatedAt
