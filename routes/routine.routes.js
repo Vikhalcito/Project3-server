@@ -4,27 +4,63 @@ const mongoose = require ("mongoose");
 
 const Routine = require("../models/Routine.model");
 const Exercise = require("../models/Exercise.model");
+const User = require("../models/User.model")
+
+const {isAuthenticated} = require("../middleware/jwt.middleware")
 
 //POST  /api/routines => para Crear una nueva rutina
-router.post("/routines", (req, res, next) => {
+router.post("/routines", isAuthenticated, async (req, res, next) => {
+  try {
+    const { name, category, description, difficulty, exercises } = req.body;
 
-    const {name, category, description, difficulty, exercises} = req.body
-    
-    const newRoutine = new Routine({name, category, description, difficulty, exercises});
+    // crear la rutina
+    const routine = await Routine.create({
+      name,
+      category,
+      description,
+      difficulty,
+      exercises,
+    });
 
-    newRoutine.save()
-    .then((savedRoutine) => res.status(201).json(savedRoutine))
-    .catch((err) => res.status(400).json({message: "Failed to create new Routine"}))
-})
+    // vincularla al usuario autenticado
+    const updatedUser = await User.findByIdAndUpdate(
+      req.payload._id,       //poner aqui _id en lugar de id              
+      { $addToSet: { routines: routine._id } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      // el id del token no existe en la BD
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("Usuario actualizado →", updatedUser.routines);
+    return res.status(201).json(routine);
+  } catch (err) {
+    next(err); 
+  }
+});
 
 //GET /api/routines => para Obtener todas las rutinas desde la BD
-router.get("/routines", (req, res, next) => {
+router.get("/routines", isAuthenticated, async (req, res, next) => {
+  try {
+    // 1️⃣  comprueba que el middleware puso _id
+    const { _id } = req.payload || {};
+    if (!_id) return res.status(401).json({ message: "Token sin _id" });
 
-    Routine.find()
-    .populate("exercises")
-    .then((allRoutines)=> res.status(201).json(allRoutines))
-    .catch((err) => res.status(400).json({message: "There are no Routines to show"}))
-})
+    console.log("ID desde token:", _id);
+
+    // buscar al usuario y popula sus rutinas
+    const user = await User.findById(_id).populate("routines");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    //console.log("Routines encontradas:", user.routines);
+    return res.status(200).json(user.routines);               // ✔️ 200 OK
+  } catch (err) {
+    console.error("Error en GET /routines →", err);           // 🕵️‍♂️
+    next(err);                                                // delega
+  }
+});
 
 //GET /api/routines/:routineId => para Obtener una Rutina en especifico
 router.get("/routines/:routineId", (req, res, next) => {
@@ -59,21 +95,33 @@ router.put("/routines/:routineId", (req, res, next) => {
 })
 
 //DELETE /api/routines/:routineId => para borrar una rutina en especifico.
-router.delete("/routines/:routineId", (req, res, next) => {
-    
-    const {routineId} = req.params;
+router.delete("/routines/:routineId", isAuthenticated, async (req, res, next) => {
+  try {
+    const { routineId } = req.params;
+    const { _id: userId } = req.payload;
 
-    if(!mongoose.Types.ObjectId.isValid(routineId)) {
-            res.status(400).json({message: "Specified id is not valid"})
-            return;
-        }
-    
-    Routine.findByIdAndDelete(routineId)
-    .then(() =>
-        res.json({message: "Routine successfully removed!" })
-    )
-    .catch((err) => res.json(err))
+    // Verificar propiedad igual que antes
+    const owner = await User.findOne({ _id: userId, routines: routineId });
+    if (!owner)
+      return res.status(403).json({ message: "Sin permiso para borrar esta rutina" });
 
-})
+    // Eliminar la rutina
+    const deletedRoutine = await Routine.findByIdAndDelete(routineId);
+    if (!deletedRoutine)
+      return res.status(404).json({ message: "Routine not found" });
+
+    // Quitar referencia en el usuario
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { routines: routineId } },
+      { new: true }
+    );
+
+    // 204 = No Content (éxito sin body)
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;

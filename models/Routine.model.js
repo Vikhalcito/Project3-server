@@ -25,4 +25,4 @@ const routineSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('Routine', routineSchema);
+module.exports = mongoose.model('Routines', routineSchema);
