@@ -105,20 +105,18 @@ router.delete("/routines/:routineId", isAuthenticated, async (req, res, next) =>
     if (!owner)
       return res.status(403).json({ message: "Sin permiso para borrar esta rutina" });
 
-    // Eliminar la rutina
     const deletedRoutine = await Routine.findByIdAndDelete(routineId);
     if (!deletedRoutine)
       return res.status(404).json({ message: "Routine not found" });
 
-    // Quitar referencia en el usuario
     await User.findByIdAndUpdate(
       userId,
       { $pull: { routines: routineId } },
       { new: true }
     );
 
-    // 204 = No Content (éxito sin body)
     res.status(204).send();
+    console.log("rutina borrada")
   } catch (err) {
     next(err);
   }

@@ -75,53 +75,38 @@ router.post("/signup", (req, res, next) => {
 });
 
 // POST  /auth/login - Verifies email and password and returns a JWT
-router.post("/login", (req, res, next) => {
-  const { email, password } = req.body;
-  console.log(email, password)
-  // Check if email or password are provided as empty string
-  if (!email || !password) {
-    res.status(400).json({ message: "Provide email and password." });
-    return;
+router.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password)
+      return res.status(400).json({ message: "Provide email and password." });
+
+    const foundUser = await User.findOne({ email });
+
+    if (!foundUser)
+      return res.status(401).json({ message: "User not found." });
+
+    const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
+    if (!passwordCorrect)
+      return res.status(401).json({ message: "Unable to authenticate the user" });
+
+    const { _id, name, userType } = foundUser;
+    console.log('Valor de foundUser.userType →', foundUser.userType);
+    const payload = { _id, email, name, role: userType };
+
+    const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
+      algorithm: "HS256",
+      expiresIn: "6h",
+    });
+
+    return res.status(200).json({
+      authToken,
+      user: payload   // ← explícito para el frontend
+    });
+  } catch (err) {
+    next(err);
   }
-
-  // Check the users collection if a user with the same email exists
-  User.findOne({ email })
-    .then((foundUser) => {
-      if (!foundUser) {
-        // If the user is not found, send an error response
-        res.status(401).json({ message: "User not found." });
-        return;
-      }
-
-      // Compare the provided password with the one saved in the database
-     console.log("Login attempt for:", email);
-    console.log("Entered password:", password);
-    console.log("Stored hash:", foundUser.password)
-
-
-      const passwordCorrect = bcrypt.compareSync(password, foundUser.password);
-
-      if (passwordCorrect) {
-        // Deconstruct the user object to omit the password
-        const { _id, email, name } = foundUser;
-
-        // Create an object that will be set as the token payload
-        const payload = { _id, email, name };
-
-        // Create a JSON Web Token and sign it
-        const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
-          algorithm: "HS256",
-          expiresIn: "6h",
-        });
-
-        // Send the token as the response
-        res.status(200).json({ authToken: authToken });
-        res.status(200).json("All good");
-      } else {
-        res.status(401).json({ message: "Unable to authenticate the user" });
-      }
-    })
-    .catch((err) => next(err)); // In this case, we send error handling to the error handling middleware.
 });
 
 // GET  /auth/verify  -  Used to verify JWT stored on the client

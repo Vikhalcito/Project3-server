@@ -23,7 +23,7 @@ app.use("/api", indexRoutes);
 
 // Rutas para los exercises.
 const exerciseRoutes = require("./routes/exercise.routes");
-app.use("/api",isAuthenticated, exerciseRoutes)
+app.use("/api", exerciseRoutes)
 
 // Rutas para las Routines
 const routineRoutes = require("./routes/routine.routes");
