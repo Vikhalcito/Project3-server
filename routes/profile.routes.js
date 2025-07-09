@@ -12,7 +12,7 @@ router.get("/profile", async (req, res, next) => {
     const {_id} = req.payload
 
     try{
-         const user  = await User.findById(_id).select("_id email name");
+         const user  = await User.findById(_id);
          res.json(user)
     }catch(error){
         res.status(500).json({message: error.message})
@@ -21,19 +21,42 @@ router.get("/profile", async (req, res, next) => {
 
 })
 
-router.put("/profile", async (req, res, next) => {
+router.put("/profile", async (req, res) => {
+  const { _id } = req.payload;
+  const {
+    email,
+    name,
+    username,
+    age,
+    weight,
+    height,
+    description,
+    userImg,
+  } = req.body;
 
-    const {_id} = req.payload
-    const {email, name} = req.body
-    try{
-         const updatedUser  = await User.findByIdAndUpdate(_id, {email, name}, {new:true}).select("_id email name");
-         res.json(updatedUser)
-    }catch(error){
-        res.status(500).json({message: error.message})
-    }
-   
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      _id,
+      {
+        email,
+        name,
+        username,
+        age,
+        weight,
+        height,
+        description,
+        userImg,
+      },
+      { new: true }
+    ).select(
+      "_id email name username age weight height description userImg"
+    );
 
-})
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 
 module.exports = router;

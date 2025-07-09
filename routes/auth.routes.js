@@ -91,9 +91,9 @@ router.post("/login", async (req, res, next) => {
     if (!passwordCorrect)
       return res.status(401).json({ message: "Unable to authenticate the user" });
 
-    const { _id, name, userType } = foundUser;
+    const { _id, name, userType, userImg, age, height, weight, description } = foundUser;
     console.log('Valor de foundUser.userType →', foundUser.userType);
-    const payload = { _id, email, name, role: userType };
+    const payload = { _id, email, name, role: userType, userImg, age, height, weight, description };
 
     const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
       algorithm: "HS256",
