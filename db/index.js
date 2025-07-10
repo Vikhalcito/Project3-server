@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 
 const MONGO_URI =
   //process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/calizenics-server";
-  process.env.MONGODB_URI || "mongodb+srv://bobvikhal:Bob2017$@vikhalcitocluster.quxb7sc.mongodb.net/MyDBase?retryWrites=true&w=majority&appName=VikhalcitoCluster"
+  process.env.MONGODB_URI 
 
 mongoose
   .connect(MONGO_URI)
