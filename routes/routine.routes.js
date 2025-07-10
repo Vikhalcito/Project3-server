@@ -13,7 +13,7 @@ router.post("/routines", isAuthenticated, async (req, res, next) => {
   try {
     const { name, category, description, difficulty, exercises } = req.body;
 
-    // crear la rutina
+    
     const routine = await Routine.create({
       name,
       category,
@@ -22,7 +22,7 @@ router.post("/routines", isAuthenticated, async (req, res, next) => {
       exercises,
     });
 
-    // vincularla al usuario autenticado
+  
     const updatedUser = await User.findByIdAndUpdate(
       req.payload._id,       //poner aqui _id en lugar de id              
       { $addToSet: { routines: routine._id } },
@@ -30,7 +30,7 @@ router.post("/routines", isAuthenticated, async (req, res, next) => {
     );
 
     if (!updatedUser) {
-      // el id del token no existe en la BD
+      
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -44,21 +44,21 @@ router.post("/routines", isAuthenticated, async (req, res, next) => {
 //GET /api/routines => para Obtener todas las rutinas desde la BD
 router.get("/routines", isAuthenticated, async (req, res, next) => {
   try {
-    // 1️⃣  comprueba que el middleware puso _id
+   
     const { _id } = req.payload || {};
     if (!_id) return res.status(401).json({ message: "Token sin _id" });
 
-    console.log("ID desde token:", _id);
+   
 
-    // buscar al usuario y popula sus rutinas
+    
     const user = await User.findById(_id).populate("routines");
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    //console.log("Routines encontradas:", user.routines);
-    return res.status(200).json(user.routines);               // ✔️ 200 OK
+    
+    return res.status(200).json(user.routines);               
   } catch (err) {
-    console.error("Error en GET /routines →", err);           // 🕵️‍♂️
-    next(err);                                                // delega
+    console.error("Error en GET /routines →", err);           
+    next(err);                                             
   }
 });
 
@@ -100,7 +100,7 @@ router.delete("/routines/:routineId", isAuthenticated, async (req, res, next) =>
     const { routineId } = req.params;
     const { _id: userId } = req.payload;
 
-    // Verificar propiedad igual que antes
+    
     const owner = await User.findOne({ _id: userId, routines: routineId });
     if (!owner)
       return res.status(403).json({ message: "Sin permiso para borrar esta rutina" });
