@@ -23,7 +23,7 @@ module.exports = (app) => {
   // controls a very specific header to pass headers from the frontend
   app.use(
     cors({
-      origin: ["http://localhost:5173", "http://localhost:5174"],
+      origin: ["http://localhost:5173", "http://localhost:5174","https://project3-client-iota.vercel.app"],
     })
   );
 
